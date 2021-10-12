@@ -1,4 +1,5 @@
 import torch
+import numpy as np
 
 x = torch.empty(2, 3, 2, 2) # empty tensor
 
@@ -32,4 +33,16 @@ print(x)
 print(x[:, 0]) # get every row in the first column
 print(x[1, 2].item()) # get actual exact value
 
-# 16:30
+# converting from numpy arrays to tensors
+print("------")
+a = torch.ones(5)
+print(a)
+print(type(a))
+b = a.numpy()
+print(b)
+print(type(b))
+
+a.add_(1)
+print(a, b) # both point to same memory location, changing one will change the other
+
+# 26:00
