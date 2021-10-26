@@ -17,11 +17,6 @@ class NN(nn.Module): # class neural network inherits nn.module
         x = F.relu(self.fc1(x))
         x = self.fc2(x)
         return x
-    
-
-# model = NN(784, 10) # 784 inputs, 10 digits
-# x = torch.rand(64, 784) # num of images, input size
-# print(model(x).shape)
 
 # set device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -34,3 +29,53 @@ batch_size = 64
 num_epochs = 1
 
 # load data
+train_dataset = datasets.MNIST(root='dataset/', train=True, transform=transforms.ToTensor(), download=True) # training dataset, transforms to tensor in pytorch
+train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
+
+test_dataset = datasets.MNIST(root='dataset/', train=False, transform=transforms.ToTensor(), download=True) 
+test_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
+
+# init network
+model = NN(input_size=input_size, num_classes=num_classes).to(device)
+
+# loss and optimizer
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+
+# train network
+for epoch in range(num_epochs): # 1 epoch = network has seen all the images in the dataset
+    for batch_idx, (data, targets) in enumerate(train_loader): # data = image, target = correct number
+        # get data to cuda if possible
+        data = data.to(device=device)
+        targets = targets.to(device=device)
+        
+        # get to correct shape
+        data = data.reshape(data.shape[0], -1)
+
+        # forward
+        scores = model(data)
+        loss = criterion(scores, targets)
+
+        # backward (backprop)
+        optimizer.zero_grad() # set all gradients to zero for each batch so it doesnt have backprop calcs from previous forward props
+        loss.backward()
+
+        # gradient descent or adam step
+        optimizer.step()
+        
+# check accuacy on training and test to see hwo good our model is
+
+def check_accuracy(loader, model):
+    num_correct = 0
+    num_samples = 0
+    model.eval()
+
+    with torch.no_grad():
+        for x, y in loader:
+            x = x.to(device=device)
+            y = y.to(device=device)
+            x = x.reshape(x.shape[0], -1)
+
+            scores = model(x)
+            scores.max()
+
